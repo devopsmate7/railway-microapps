@@ -1,0 +1,22 @@
+# Apply on the dev cluster after Argo CD is installed:
+#   kubectl apply -f deploy/argocd/railway-dev.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: railway-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/devopsmate7/railway-microapps.git
+    targetRevision: main
+    path: deploy/k8s/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: railway
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

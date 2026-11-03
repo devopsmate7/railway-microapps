@@ -1,0 +1,81 @@
+name: promote-prod
+
+# Copy the images that already run in dev into the prod ECR repos, then point
+# the prod overlay at that tag. Argo CD on prod waits for a manual Sync.
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Full commit SHA that is running in dev"
+        required: true
+
+permissions:
+  id-token: write
+  contents: write
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
+  IMAGE_TAG: ${{ inputs.image_tag }}
+  SERVICES: frontend train-service booking-service
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - name: Check the tag looks like a commit SHA
+        run: '[[ "$IMAGE_TAG" =~ ^[0-9a-f]{40}$ ]] || { echo "image_tag must be a full 40-character commit SHA"; exit 1; }'
+
+      - uses: actions/checkout@v4
+
+      - name: Log in as dev
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN_DEV }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Pull the dev images
+        run: |
+          for svc in $SERVICES; do
+            docker pull "$ECR_REGISTRY/railway-dev/$svc:$IMAGE_TAG"
+          done
+
+      - name: Log in as prod
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push the same images to prod
+        run: |
+          for svc in $SERVICES; do
+            docker tag "$ECR_REGISTRY/railway-dev/$svc:$IMAGE_TAG" "$ECR_REGISTRY/railway-prod/$svc:$IMAGE_TAG"
+            docker push "$ECR_REGISTRY/railway-prod/$svc:$IMAGE_TAG"
+          done
+
+      - name: Install kustomize if missing
+        run: |
+          if ! command -v kustomize >/dev/null; then
+            curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+            sudo mv kustomize /usr/local/bin/
+          fi
+
+      - name: Point the prod overlay at the promoted images
+        working-directory: deploy/k8s/overlays/prod
+        run: |
+          for svc in $SERVICES; do
+            kustomize edit set image "$svc=$ECR_REGISTRY/railway-prod/$svc:$IMAGE_TAG"
+          done
+
+      - name: Commit the promotion
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add deploy/k8s/overlays/prod/kustomization.yaml
+          git diff --cached --quiet && exit 0
+          git commit -m "Promote ${IMAGE_TAG::7} to prod"
+          git pull --rebase
+          git push

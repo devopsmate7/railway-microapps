@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RailMate - Book a train ticket</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <span class="logo">RailMate</span>
+      <span class="tag">frontend | train-service | booking-service</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <h1>Book a train ticket</h1>
+      <form id="search-form">
+        <div class="grid">
+          <label>Passenger name
+            <input id="name" required minlength="2" maxlength="60" placeholder="Full name" autocomplete="name">
+          </label>
+          <label>Travel date
+            <input id="date" type="date" required>
+          </label>
+          <label>From
+            <select id="from" required></select>
+          </label>
+          <label>To
+            <select id="to" required></select>
+          </label>
+        </div>
+        <button type="submit">Search trains</button>
+      </form>
+      <p id="msg" class="msg" hidden></p>
+    </section>
+
+    <section id="trains-card" class="card" hidden>
+      <h2>Available trains</h2>
+      <div id="trains"></div>
+    </section>
+
+    <section id="ticket" class="card ticket" hidden></section>
+
+    <section class="card">
+      <h2>Recent bookings</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>PNR</th><th>Name</th><th>Route</th><th>Date</th><th>Train</th><th>Fare</th></tr>
+          </thead>
+          <tbody id="bookings"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

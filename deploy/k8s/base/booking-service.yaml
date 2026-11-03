@@ -1,0 +1,66 @@
+# Terraform links this ServiceAccount (namespace railway) to an IAM role through
+# EKS Pod Identity, so the pod can write to DynamoDB without access keys.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: booking-service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-service
+  labels:
+    app: booking-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: booking-service
+  template:
+    metadata:
+      labels:
+        app: booking-service
+    spec:
+      serviceAccountName: booking-service
+      containers:
+        - name: booking-service
+          image: booking-service
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: booking-config
+          env:
+            - name: TRAIN_SERVICE_URL
+              value: http://train-service:8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              memory: 192Mi
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-service
+spec:
+  selector:
+    app: booking-service
+  ports:
+    - port: 8000
+      targetPort: 8000

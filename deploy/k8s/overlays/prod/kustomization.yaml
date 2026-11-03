@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: railway
+
+resources:
+  - ../../base
+
+configMapGenerator:
+  - name: booking-config
+    literals:
+      - TABLE_NAME=railway-prod-bookings
+      - AWS_REGION=ap-south-1
+
+replicas:
+  - name: frontend
+    count: 2
+  - name: train-service
+    count: 2
+  - name: booking-service
+    count: 2
+
+# The promote-prod workflow rewrites these with the promoted commit SHA.
+images:
+  - name: frontend
+    newName: ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/railway-prod/frontend
+    newTag: initial
+  - name: train-service
+    newName: ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/railway-prod/train-service
+    newTag: initial
+  - name: booking-service
+    newName: ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/railway-prod/booking-service
+    newTag: initial

@@ -1,0 +1,31 @@
+# Laptop run: docker compose up --build  ->  http://localhost:8080
+# Uses DynamoDB Local, so no AWS account is needed for this step.
+services:
+  dynamodb-local:
+    image: amazon/dynamodb-local
+    command: ["-jar", "DynamoDBLocal.jar", "-inMemory", "-sharedDb"]
+
+  train-service:
+    build: ./services/train-service
+
+  booking-service:
+    build: ./services/booking-service
+    environment:
+      TABLE_NAME: railway-local-bookings
+      AWS_REGION: ap-south-1
+      DYNAMODB_ENDPOINT_URL: http://dynamodb-local:8000
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+      TRAIN_SERVICE_URL: http://train-service:8000
+    depends_on:
+      - dynamodb-local
+      - train-service
+    restart: on-failure
+
+  frontend:
+    build: ./services/frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - train-service
+      - booking-service

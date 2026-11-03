@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: railway
+
+resources:
+  - ../../base
+
+configMapGenerator:
+  - name: booking-config
+    literals:
+      - TABLE_NAME=railway-dev-bookings
+      - AWS_REGION=ap-south-1
+
+# The ci-dev workflow rewrites these with the real ECR address and commit SHA.
+images:
+  - name: frontend
+    newName: 480974848538.dkr.ecr.ap-south-1.amazonaws.com/railway-dev/frontend
+    newTag: dev
+  - name: train-service
+    newName: 480974848538.dkr.ecr.ap-south-1.amazonaws.com/railway-dev/train-service
+    newTag: dev
+  - name: booking-service
+    newName: 480974848538.dkr.ecr.ap-south-1.amazonaws.com/railway-dev/booking-service
+    newTag: dev
