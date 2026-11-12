@@ -42,6 +42,8 @@ else
     sudo systemctl start docker
     sudo systemctl enable docker
     sudo usermod -aG docker $USER
+    # Switch group for the current script run (non-interactive) to avoid docker.sock permission errors
+    newgrp docker -- docker ps >/dev/null 2>&1 || true
     echo "✅ Docker installed"
 fi
 echo ""
