@@ -698,38 +698,33 @@ cd railway-microapps
                         
                         <div class="section-title">STEP 2: Get Account ID:</div>
                         <div class="command-block">
-ACCOUNT_ID=480974848538
-REGION=ap-southeast-2
+# Replace YOUR_AWS_ACCOUNT_ID with your student AWS Account ID (12 digits)
                         </div>
                         
                         <div class="section-title">STEP 3: Login to ECR:</div>
                         <div class="command-block">
-aws ecr get-login-password --region $REGION | \
-docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
+aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin YOUR_AWS_ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com
                         </div>
                         
                         <div class="section-title">STEP 4: Build Frontend Image (from services/frontend/):</div>
                         <div class="command-block">
 docker build -t railway-dev/frontend:v1.0 services/frontend/
-docker tag railway-dev/frontend:v1.0 \
-$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/railway-dev/frontend:v1.0
-docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/railway-dev/frontend:v1.0
+docker tag railway-dev/frontend:v1.0 YOUR_AWS_ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com/railway-dev/frontend:v1.0
+docker push YOUR_AWS_ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com/railway-dev/frontend:v1.0
                         </div>
                         
                         <div class="section-title">STEP 5: Build Train-Service (from services/train-service/):</div>
                         <div class="command-block">
 docker build -t railway-dev/train-service:v1.0 services/train-service/
-docker tag railway-dev/train-service:v1.0 \
-$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/railway-dev/train-service:v1.0
-docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/railway-dev/train-service:v1.0
+docker tag railway-dev/train-service:v1.0 YOUR_AWS_ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com/railway-dev/train-service:v1.0
+docker push YOUR_AWS_ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com/railway-dev/train-service:v1.0
                         </div>
                         
                         <div class="section-title">STEP 6: Build Booking-Service (from services/booking-service/):</div>
                         <div class="command-block">
 docker build -t railway-dev/booking-service:v1.0 services/booking-service/
-docker tag railway-dev/booking-service:v1.0 \
-$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/railway-dev/booking-service:v1.0
-docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/railway-dev/booking-service:v1.0
+docker tag railway-dev/booking-service:v1.0 YOUR_AWS_ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com/railway-dev/booking-service:v1.0
+docker push YOUR_AWS_ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com/railway-dev/booking-service:v1.0
                         </div>
                     </div>
                 </div>
