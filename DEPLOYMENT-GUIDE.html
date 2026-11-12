@@ -523,8 +523,37 @@ aws configure
                     </div>
                 </div>
 
+                <div class="step">
+                    <h3>Step 1.10: Add Required EKS Subnet Tags (IMPORTANT)</h3>
+                    <div class="step-content">
+                        <div class="section-title">WHY (IMPORTANT):</div>
+                        <p>EKS needs subnet “discovery tags” to place node groups and load balancers correctly. If these tags are missing, your node group can fail with “instances failed to join the kubernetes cluster”.</p>
+
+                        <div class="section-title">ADD THESE TAGS ON ALL 4 SUBNETS:</div>
+                        <div class="list">
+                            <li><strong>Tag 1:</strong> kubernetes.io/cluster/railway-dev = <strong>shared</strong></li>
+                            <li>
+                                <strong>Tag 2:</strong> depends on subnet type:
+                                <ul>
+                                    <li><strong>Public subnets</strong> (railway-public-1a, railway-public-1b): kubernetes.io/role/elb = <strong>1</strong></li>
+                                    <li><strong>Private subnets</strong> (railway-private-1a, railway-private-1b): kubernetes.io/role/internal-elb = <strong>1</strong></li>
+                                </ul>
+                            </li>
+                        </div>
+
+                        <div class="section-title">HOW TO DO:</div>
+                        <div class="list">
+                            <li>AWS Console → <strong>VPC → Subnets</strong></li>
+                            <li>Open one subnet (example: railway-private-1a)</li>
+                            <li>Go to <strong>Tags → Manage tags → Add tag</strong></li>
+                            <li>Add the tags above</li>
+                            <li>Repeat for all 4 subnets</li>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="success">
-                    ✅ Phase 1 Complete: VPC + DNS + IGW + NAT + Route Tables + Security Group ready!
+                    ✅ Phase 1 Complete: VPC + DNS + IGW + NAT + Route Tables + Security Group + Subnet Tags ready!
                 </div>
             </div>
 
@@ -649,7 +678,14 @@ aws configure
                                 <ul>
                                     <li>VPC: <strong>railway-vpc</strong></li>
                                     <li>Subnets: select <strong>all 4</strong> (railway-public-1a, railway-public-1b, railway-private-1a, railway-private-1b)</li>
-                                    <li>Security group: <strong>railway-eks-sg</strong></li>
+                                    <li>Security group (EKS cluster control plane SG): <strong>railway-eks-sg</strong></li>
+                                </ul>
+                            </li>
+                            <li>
+                                Configure <strong>API server endpoint access</strong>:
+                                <ul>
+                                    <li>Select: <strong>Public and private</strong></li>
+                                    <li>Public access source allowlist: <strong>YOUR_EC2_PUBLIC_IP/32</strong> (for security)</li>
                                 </ul>
                             </li>
                             <li>Next → <strong>Configure observability</strong>: leave defaults</li>
@@ -673,6 +709,13 @@ aws configure
                             <li>Instance type: <strong>t3.medium</strong></li>
                             <li>Size / Auto scaling: min=<strong>1</strong>, max=<strong>3</strong>, desired=<strong>2</strong></li>
                             <li>Subnets: select <strong>private subnets only</strong> (railway-private-1a, railway-private-1b)</li>
+                            <li>
+                                Security group for nodes:
+                                <ul>
+                                    <li>If the UI asks for “Security groups” for the node group, select <strong>railway-eks-sg</strong> (same SG as the cluster control plane) to simplify connectivity.</li>
+                                    <li>If AWS forces a different SG, you must allow inbound from the cluster SG on <strong>TCP 443</strong> (and typically <strong>TCP 1025–65535</strong>).</li>
+                                </ul>
+                            </li>
                             <li>⏳ WAIT: 5-10 minutes for nodes to be <strong>Active / Ready</strong></li>
                         </div>
                     </div>
