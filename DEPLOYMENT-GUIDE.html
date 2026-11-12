@@ -344,8 +344,187 @@ aws configure
                     </div>
                 </div>
 
+                <div class="step">
+                    <h3>Step 1.3: Enable DNS Hostnames & Resolution</h3>
+                    <div class="step-content">
+                        <div class="section-title">PURPOSE:</div>
+                        <p>Enable DNS so services can reach each other by name</p>
+                        
+                        <div class="section-title">HOW TO DO:</div>
+                        <div class="list">
+                            <li>AWS Console → <strong>VPC → Your VPCs</strong></li>
+                            <li>Select: <strong>railway-vpc</strong></li>
+                            <li>At bottom: <strong>Actions → Edit DNS hostnames</strong></li>
+                            <li>Enable: ✓ <strong>Enable DNS hostnames</strong></li>
+                            <li>Click: <strong>Save changes</strong></li>
+                            <li>Back: <strong>Actions → Edit DNS resolution</strong></li>
+                            <li>Enable: ✓ <strong>Enable DNS resolution</strong></li>
+                            <li>Click: <strong>Save changes</strong></li>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>Step 1.4: Create Internet Gateway (IGW)</h3>
+                    <div class="step-content">
+                        <div class="section-title">PURPOSE:</div>
+                        <p>IGW connects your VPC to the internet</p>
+                        
+                        <div class="section-title">HOW TO DO:</div>
+                        <div class="list">
+                            <li>AWS Console → <strong>VPC → Internet Gateways</strong></li>
+                            <li>Click: <strong>"Create internet gateway"</strong> (orange button)</li>
+                            <li>Name tag: <strong>railway-igw</strong></li>
+                            <li>Click: <strong>"Create internet gateway"</strong></li>
+                            <li>Attach to your VPC:
+                                <ul>
+                                    <li>Actions → <strong>Attach to VPC</strong></li>
+                                    <li>Select: <strong>railway-vpc</strong></li>
+                                    <li>Click: <strong>"Attach internet gateway"</strong></li>
+                                </ul>
+                            </li>
+                            <li>SAVE: Copy IGW ID (starts with <strong>igw-</strong>)</li>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>Step 1.5: Create Elastic IP (for NAT Gateway)</h3>
+                    <div class="step-content">
+                        <div class="section-title">PURPOSE:</div>
+                        <p>NAT Gateway needs a static public IP</p>
+
+                        <div class="section-title">HOW TO DO:</div>
+                        <div class="list">
+                            <li>EC2 → <strong>Elastic IPs</strong></li>
+                            <li>Click: <strong>"Allocate Elastic IP address"</strong></li>
+                            <li>Select pool: <strong>Amazon's IP address pool</strong></li>
+                            <li>Click: <strong>"Allocate"</strong></li>
+                            <li>SAVE: Copy Allocation ID (starts with <strong>eipalloc-</strong>)</li>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>Step 1.6: Create NAT Gateway</h3>
+                    <div class="step-content">
+                        <div class="section-title">PURPOSE:</div>
+                        <p>Private subnets can reach the internet for updates/downloads</p>
+
+                        <div class="section-title">HOW TO DO:</div>
+                        <div class="list">
+                            <li>AWS Console → <strong>VPC → NAT Gateways</strong></li>
+                            <li>Click: <strong>"Create NAT gateway"</strong></li>
+                            <li>Subnet: <strong>railway-public-1a</strong> (must be a public subnet)</li>
+                            <li>Elastic IP allocation ID: choose your saved <strong>eipalloc-...</strong></li>
+                            <li>Click: <strong>"Create NAT gateway"</strong></li>
+                            <li>WAIT: Status goes from <strong>Pending</strong> → <strong>Available</strong> (2-3 min)</li>
+                            <li>SAVE: NAT Gateway ID (starts with <strong>nat-</strong>)</li>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>Step 1.7: Create Public Route Table (Route to IGW)</h3>
+                    <div class="step-content">
+                        <div class="section-title">PURPOSE:</div>
+                        <p>Controls where public-subnet traffic goes</p>
+
+                        <div class="section-title">HOW TO DO:</div>
+                        <div class="list">
+                            <li>VPC → <strong>Route Tables</strong></li>
+                            <li>Click: <strong>"Create route table"</strong></li>
+                            <li>Name: <strong>railway-public-rt</strong></li>
+                            <li>VPC: <strong>railway-vpc</strong></li>
+                            <li>Click: <strong>"Create route table"</strong></li>
+                            <li>Open tab: <strong>Routes</strong> → <strong>Edit routes</strong></li>
+                            <li>Click: <strong>"Add route"</strong></li>
+                            <li>
+                                Route to add:
+                                <ul>
+                                    <li>Destination: <strong>0.0.0.0/0</strong></li>
+                                    <li>Target: <strong>Internet Gateway → railway-igw</strong></li>
+                                </ul>
+                            </li>
+                            <li>Click: <strong>"Save changes"</strong></li>
+                        </div>
+
+                        <div class="section-title">ASSOCIATE WITH PUBLIC SUBNETS:</div>
+                        <div class="list">
+                            <li>Back in route table → <strong>Subnet associations</strong></li>
+                            <li>Click: <strong>"Edit subnet associations"</strong></li>
+                            <li>Select: <strong>railway-public-1a</strong> and <strong>railway-public-1b</strong></li>
+                            <li>Click: <strong>"Save associations"</strong></li>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>Step 1.8: Create Private Route Table (Route to NAT)</h3>
+                    <div class="step-content">
+                        <div class="section-title">PURPOSE:</div>
+                        <p>Controls where private-subnet traffic goes (to NAT, not directly to IGW)</p>
+
+                        <div class="section-title">HOW TO DO:</div>
+                        <div class="list">
+                            <li>VPC → <strong>Route Tables</strong></li>
+                            <li>Click: <strong>"Create route table"</strong></li>
+                            <li>Name: <strong>railway-private-rt</strong></li>
+                            <li>VPC: <strong>railway-vpc</strong></li>
+                            <li>Click: <strong>"Create route table"</strong></li>
+                            <li>Open tab: <strong>Routes</strong> → <strong>Edit routes</strong></li>
+                            <li>Click: <strong>"Add route"</strong></li>
+                            <li>
+                                Route to add:
+                                <ul>
+                                    <li>Destination: <strong>0.0.0.0/0</strong></li>
+                                    <li>Target: <strong>NAT Gateway → railway-nat</strong></li>
+                                </ul>
+                            </li>
+                            <li>Click: <strong>"Save changes"</strong></li>
+                        </div>
+
+                        <div class="section-title">ASSOCIATE WITH PRIVATE SUBNETS:</div>
+                        <div class="list">
+                            <li>Back in route table → <strong>Subnet associations</strong></li>
+                            <li>Click: <strong>"Edit subnet associations"</strong></li>
+                            <li>Select: <strong>railway-private-1a</strong> and <strong>railway-private-1b</strong></li>
+                            <li>Click: <strong>"Save associations"</strong></li>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>Step 1.9: Create Security Group (Firewall)</h3>
+                    <div class="step-content">
+                        <div class="section-title">PURPOSE:</div>
+                        <p>Security Group controls allowed traffic (acts like a firewall)</p>
+
+                        <div class="section-title">HOW TO DO:</div>
+                        <div class="list">
+                            <li>EC2 → <strong>Security Groups</strong></li>
+                            <li>Click: <strong>"Create security group"</strong></li>
+                            <li>Name: <strong>railway-eks-sg</strong></li>
+                            <li>Description: <strong>Railway EKS security group</strong></li>
+                            <li>VPC: <strong>railway-vpc</strong></li>
+                            <li>Click: <strong>"Create security group"</strong></li>
+                            <li>Open tab: <strong>Inbound rules</strong></li>
+                            <li>Click: <strong>"Edit inbound rules"</strong></li>
+                            <li>Click: <strong>"Add rule"</strong></li>
+                            <li>
+                                Inbound rule:
+                                <ul>
+                                    <li>Type: <strong>All traffic</strong></li>
+                                    <li>Source: <strong>Custom → railway-eks-sg</strong></li>
+                                </ul>
+                            </li>
+                            <li>Click: <strong>"Save rules"</strong></li>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="success">
-                    ✅ Phase 1 Complete: VPC with 4 subnets ready!
+                    ✅ Phase 1 Complete: VPC + DNS + IGW + NAT + Route Tables + Security Group ready!
                 </div>
             </div>
 
