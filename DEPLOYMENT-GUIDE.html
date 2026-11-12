@@ -639,12 +639,12 @@ aws configure
                         <div class="list">
                             <li>AWS Console → <strong>EKS → Clusters</strong></li>
                             <li>Click: <strong>"Create cluster"</strong></li>
-                            <li>Choose configuration: <strong>Quick configuration (with EKS Auto Mode)</strong></li>
+                            <li>Choose configuration: <strong>Custom configuration</strong></li>
                             <li>Cluster name: <strong>railway-dev</strong></li>
                             <li>Cluster IAM role: <strong>railway-eks-cluster-role</strong></li>
                             <li>Kubernetes version: <strong>1.29</strong></li>
-                            <li>Compute: keep <strong>Use EKS Auto Mode</strong> (built-in node pools will be used)</li>
-                            <li>Built-in node pools: verify you see <strong>general-purpose</strong> and <strong>system</strong></li>
+                            <li>Compute option: choose <strong>EC2 Managed Node Groups</strong> (do NOT use EKS Auto Mode)</li>
+                            <li>Node IAM role: <strong>railway-eks-node-role</strong></li>
                             <li>Next → <strong>Specify networking</strong>:
                                 <ul>
                                     <li>VPC: <strong>railway-vpc</strong></li>
@@ -661,21 +661,19 @@ aws configure
                 </div>
 
                 <div class="step">
-                    <h3>Step 4.2: Verify EKS Auto Mode Nodes (Node Pools)</h3>
+                    <h3>Step 4.2: Create Node Group (Worker Nodes)</h3>
                     <div class="step-content">
                         <div class="section-title">HOW TO DO:</div>
                         <div class="list">
                             <li>Go to: <strong>EKS → Clusters → railway-dev</strong></li>
                             <li>Click: <strong>"Compute"</strong> tab</li>
-                            <li>Under EKS Auto Mode, you should see built-in node pools:
-                                <ul>
-                                    <li><strong>general-purpose</strong> (for your app workloads)</li>
-                                    <li><strong>system</strong> (for core cluster components)</li>
-                                </ul>
-                            </li>
-                            <li>Check that the node IAM role is using: <strong>railway-eks-node-role</strong></li>
-                            <li>If the UI lets you set it, set <strong>general-purpose</strong> instance type to <strong>t3.medium</strong> and aim for about <strong>2</strong> nodes</li>
-                            <li>⏳ WAIT: nodes should come to <strong>Ready</strong> (5-10 minutes)</li>
+                            <li>Click: <strong>"Create node group"</strong></li>
+                            <li>Name: <strong>railway-nodes</strong></li>
+                            <li>Node IAM role: <strong>railway-eks-node-role</strong></li>
+                            <li>Instance type: <strong>t3.medium</strong></li>
+                            <li>Size / Auto scaling: min=<strong>1</strong>, max=<strong>3</strong>, desired=<strong>2</strong></li>
+                            <li>Subnets: select <strong>private subnets only</strong> (railway-private-1a, railway-private-1b)</li>
+                            <li>⏳ WAIT: 5-10 minutes for nodes to be <strong>Active / Ready</strong></li>
                         </div>
                     </div>
                 </div>
