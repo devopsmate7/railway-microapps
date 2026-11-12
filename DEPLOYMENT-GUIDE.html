@@ -639,30 +639,43 @@ aws configure
                         <div class="list">
                             <li>AWS Console → <strong>EKS → Clusters</strong></li>
                             <li>Click: <strong>"Create cluster"</strong></li>
-                            <li>Name: <strong>railway-dev</strong></li>
-                            <li>Version: <strong>1.29</strong></li>
-                            <li>Role: <strong>railway-eks-cluster-role</strong></li>
-                            <li>VPC: <strong>railway-vpc</strong></li>
-                            <li>Subnets: Select all 4 (public + private)</li>
-                            <li>Security group: Create or select appropriate one</li>
-                            <li>⏳ WAIT: 10-15 minutes for cluster to be "Active"</li>
+                            <li>Choose configuration: <strong>Quick configuration (with EKS Auto Mode)</strong></li>
+                            <li>Cluster name: <strong>railway-dev</strong></li>
+                            <li>Cluster IAM role: <strong>railway-eks-cluster-role</strong></li>
+                            <li>Kubernetes version: <strong>1.29</strong></li>
+                            <li>Compute: keep <strong>Use EKS Auto Mode</strong> (built-in node pools will be used)</li>
+                            <li>Built-in node pools: verify you see <strong>general-purpose</strong> and <strong>system</strong></li>
+                            <li>Next → <strong>Specify networking</strong>:
+                                <ul>
+                                    <li>VPC: <strong>railway-vpc</strong></li>
+                                    <li>Subnets: select <strong>all 4</strong> (railway-public-1a, railway-public-1b, railway-private-1a, railway-private-1b)</li>
+                                    <li>Security group: <strong>railway-eks-sg</strong></li>
+                                </ul>
+                            </li>
+                            <li>Next → <strong>Configure observability</strong>: leave defaults</li>
+                            <li>Next → <strong>Select add-ons</strong>: leave defaults (recommended) and keep the standard EKS add-ons</li>
+                            <li>Review → <strong>Create</strong></li>
+                            <li>⏳ WAIT: 10-15 minutes for cluster to be <strong>Active</strong></li>
                         </div>
                     </div>
                 </div>
 
                 <div class="step">
-                    <h3>Step 4.2: Create Node Group</h3>
+                    <h3>Step 4.2: Verify EKS Auto Mode Nodes (Node Pools)</h3>
                     <div class="step-content">
                         <div class="section-title">HOW TO DO:</div>
                         <div class="list">
-                            <li>In cluster: Click <strong>"Compute" tab</strong></li>
-                            <li>Click: <strong>"Create node group"</strong></li>
-                            <li>Name: <strong>railway-nodes</strong></li>
-                            <li>Role: <strong>railway-eks-node-role</strong></li>
-                            <li>Instance type: <strong>t3.medium</strong></li>
-                            <li>Size: min=1, max=3, desired=2</li>
-                            <li>Subnets: Select private subnets only</li>
-                            <li>⏳ WAIT: 5-10 minutes for nodes to be "Active"</li>
+                            <li>Go to: <strong>EKS → Clusters → railway-dev</strong></li>
+                            <li>Click: <strong>"Compute"</strong> tab</li>
+                            <li>Under EKS Auto Mode, you should see built-in node pools:
+                                <ul>
+                                    <li><strong>general-purpose</strong> (for your app workloads)</li>
+                                    <li><strong>system</strong> (for core cluster components)</li>
+                                </ul>
+                            </li>
+                            <li>Check that the node IAM role is using: <strong>railway-eks-node-role</strong></li>
+                            <li>If the UI lets you set it, set <strong>general-purpose</strong> instance type to <strong>t3.medium</strong> and aim for about <strong>2</strong> nodes</li>
+                            <li>⏳ WAIT: nodes should come to <strong>Ready</strong> (5-10 minutes)</li>
                         </div>
                     </div>
                 </div>
