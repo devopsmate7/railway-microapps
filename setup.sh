@@ -4,14 +4,16 @@
 # Run this on EC2 instance: bash setup.sh
 # This installs all required tools for deployment
 
-set -e  # Exit on any error
-
 echo "🚂 Railway Microapps - EC2 Setup"
 echo "================================"
 
 # Update system
 echo "📦 Updating system packages..."
 sudo apt update && sudo apt upgrade -y
+
+# Install unzip (needed for AWS CLI v2)
+echo "📦 Installing unzip..."
+sudo apt install -y unzip
 
 # Install AWS CLI v2
 echo "📦 Installing AWS CLI v2..."
@@ -45,16 +47,50 @@ sudo apt install -y curl
 # Verify installations
 echo ""
 echo "✅ Verifying installations..."
-echo "AWS CLI: $(aws --version)"
-echo "Docker: $(docker --version)"
-echo "kubectl: $(kubectl version --client --short)"
-echo "git: $(git --version)"
+echo ""
+
+# Check AWS CLI
+if command -v aws &> /dev/null; then
+    echo "✅ AWS CLI: $(aws --version)"
+else
+    echo "❌ AWS CLI: NOT INSTALLED"
+fi
+
+# Check Docker
+if command -v docker &> /dev/null; then
+    echo "✅ Docker: $(docker --version)"
+else
+    echo "❌ Docker: NOT INSTALLED"
+fi
+
+# Check kubectl
+if command -v kubectl &> /dev/null; then
+    echo "✅ kubectl: $(kubectl version --client --short 2>/dev/null || echo 'installed')"
+else
+    echo "❌ kubectl: NOT INSTALLED"
+fi
+
+# Check git
+if command -v git &> /dev/null; then
+    echo "✅ git: $(git --version)"
+else
+    echo "❌ git: NOT INSTALLED"
+fi
+
+# Check curl
+if command -v curl &> /dev/null; then
+    echo "✅ curl: $(curl --version | head -1)"
+else
+    echo "❌ curl: NOT INSTALLED"
+fi
 
 echo ""
 echo "🎉 Setup complete!"
 echo ""
 echo "📝 Next steps:"
-echo "1. Configure AWS credentials: aws configure"
-echo "2. Clone railway-microapps: git clone https://github.com/devopsmate7/railway-microapps.git"
-echo "3. Follow DEPLOYMENT-GUIDE.html for setup instructions"
+echo "1. If any tools show ❌, run setup.sh again"
+echo "2. Configure AWS credentials: aws configure"
+echo "3. Add your user to docker group: sudo usermod -aG docker \$USER && newgrp docker"
+echo "4. Verify docker works: docker ps"
+echo "5. Follow DEPLOYMENT-GUIDE.html for setup instructions"
 echo ""
